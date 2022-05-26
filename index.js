@@ -53,22 +53,48 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
-let carObject = { counter: 0 };
+let counters = { cars: { counter: 0 } };
 
-app.post("/counter/cars/increment", (req, res) => {
-  const newCount = (carObject.counter += 1);
-  carObject = { counter: newCount };
-  res.json({ counter: newCount });
+app.post("/counter/:name/increment", (req, res) => {
+  let newValue;
+  const name = req.params.name;
+  if (name in counters) {
+    newValue = counters[name].counter += 1;
+  } else {
+    counters = { ...counters, [name]: { counter: 1 } };
+  }
+  res.json({ [name]: newValue });
 });
 
-app.post("counter/cars/decrement", (req, res) => {
-  const newCount = (carObject.counter -= 1);
-  carObject = { counter: newCount };
-  res.json({ counter: newCount });
+app.post("/counter/:name/decrement", (req, res) => {
+  let newValue;
+  const name = req.params.name;
+  if (name in counters) {
+    newValue = counters[name].counter -= 1;
+  } else {
+    counters = { ...counters, [name]: { counter: -1 } };
+  }
+  res.json({ [name]: newValue });
 });
 
-app.post("/counter/cars/double", (req, res) => {
-  const newCount = carObject.counter * 2;
-  carObject = { counter: newCount };
-  res.json({ counter: newCount });
+app.post("/counter/:name/double", (req, res) => {
+  let newValue;
+  const name = req.params.name;
+  if (name in counters) {
+    newValue = counters[name].counter += counters[name].counter;
+  } else {
+    counters = { ...counters, [name]: { counter: 0 } };
+  }
+  res.json({ [name]: newValue });
+});
+
+app.delete("/counter/:name", (req, res) => {
+  const name = req.params.name;
+  res.json({ [name]: counters[name].counter });
+  counters[name].counter = 0;
+});
+
+app.get("/counter/:name", (req, res) => {
+  const name = req.params.name;
+  res.json({ [name]: counters[name].counter });
 });
